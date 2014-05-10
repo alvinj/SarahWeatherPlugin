@@ -1,0 +1,3 @@
+
+main_class = com.devdaily.sarah.plugin.weather.WeatherPlugin
+plugin_name = Weather
