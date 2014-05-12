@@ -41,13 +41,12 @@ class WeatherPlugin extends SarahPlugin {
   // sarah callback
   override def setPluginDirectory(dir: String) {
     canonPluginDirectory = dir
-  }
-
-  // sarah callback
-  def startPlugin = {
     zipCode = getZipCodeFromConfigFile(getCanonPropertiesFilename)
     println("WEATHER: zip code = " + zipCode)
   }
+
+  // this method is not called by Sarah any more
+  def startPlugin = {}
 
   // sarah callback. handle our phrases when we get them.
   def handlePhrase(phrase: String): Boolean = {
