@@ -15,7 +15,7 @@ import akka.actor.ActorSystem
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
-import com.devdaily.sarah.actors.ShowTextWindow
+import com.devdaily.sarah.actors.{ShowTextWindow, ShowTextWindowBriefly}
 
 /**
  * Get (a) the current weather or (b) the weather forecast.
@@ -57,13 +57,13 @@ class WeatherPlugin extends SarahPlugin {
         val f1 = Future { brain ! PleaseSay("Stand by.") }
         val currentWeather = getCurrentWeather
         val f2 = Future { brain ! PleaseSay(currentWeather) }
-        val f3 = Future { brain ! ShowTextWindow(currentWeather) }
+        val f3 = Future { brain ! ShowTextWindowBriefly(currentWeather, 5000) }
         return true
     } else if (phrase.trim.toLowerCase.matches("weather forecast")) {
         val f1 = Future { brain ! PleaseSay("Stand by.") }
         val weatherForecast = getWeatherForecast
         val f2 = Future { brain ! PleaseSay(weatherForecast) }
-        val f3 = Future { brain ! ShowTextWindow(weatherForecast) }
+        val f3 = Future { brain ! ShowTextWindowBriefly(weatherForecast, 9000) }
         return true
     } else {
         return false
