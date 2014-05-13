@@ -15,15 +15,18 @@ import akka.actor.ActorSystem
 import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import com.devdaily.sarah.actors.ShowTextWindow
 
 /**
  * Get (a) the current weather or (b) the weather forecast.
  */
 class WeatherPlugin extends SarahPlugin {
 
+  // TODO i no longer use these phrases
   val phrasesICanHandle = List("current weather", "weather forecast")
   val CURRENT_WEATHER = "current weather"
   val FORECAST = "weather forecast"
+
   val WEATHER_URL = "http://weather.yahooapis.com/forecastrss?p=%s&u=f" 
 
   var canonPluginDirectory = ""
@@ -35,14 +38,14 @@ class WeatherPlugin extends SarahPlugin {
 
   // sarah callback
   def textPhrasesICanHandle: List[String] = {
-    return phrasesICanHandle
+      return phrasesICanHandle
   }
 
   // sarah callback
   override def setPluginDirectory(dir: String) {
-    canonPluginDirectory = dir
-    zipCode = getZipCodeFromConfigFile(getCanonPropertiesFilename)
-    println("WEATHER: zip code = " + zipCode)
+      canonPluginDirectory = dir
+      zipCode = getZipCodeFromConfigFile(getCanonPropertiesFilename)
+      println("WEATHER: zip code = " + zipCode)
   }
 
   // this method is not called by Sarah any more
@@ -50,21 +53,25 @@ class WeatherPlugin extends SarahPlugin {
 
   // sarah callback. handle our phrases when we get them.
   def handlePhrase(phrase: String): Boolean = {
-    if (phrase.trim.equals(CURRENT_WEATHER)) {
-      val f1 = Future { brain ! PleaseSay("Stand by.") }
-      val f2 = Future { brain ! PleaseSay(getCurrentWeather) }
-      return true
-    } else if (phrase.trim.equals(FORECAST)) {
-      val f1 = Future { brain ! PleaseSay("Stand by.") }
-      val f2 = Future { brain ! PleaseSay(getWeatherForecast) }
-      return true
+    if (phrase.trim.toLowerCase.matches("(current|check) (the)* *weather")) {
+        val f1 = Future { brain ! PleaseSay("Stand by.") }
+        val currentWeather = getCurrentWeather
+        val f2 = Future { brain ! PleaseSay(currentWeather) }
+        val f3 = Future { brain ! ShowTextWindow(currentWeather) }
+        return true
+    } else if (phrase.trim.toLowerCase.matches("weather forecast")) {
+        val f1 = Future { brain ! PleaseSay("Stand by.") }
+        val weatherForecast = getWeatherForecast
+        val f2 = Future { brain ! PleaseSay(weatherForecast) }
+        val f3 = Future { brain ! ShowTextWindow(weatherForecast) }
+        return true
     } else {
-      return false
+        return false
     }
   }
   
-  val exceptionHappenedText = "Sorry, got an exception trying to check the weather."
-  val unknownHappenedText = "Sorry, ran into an unknown problem checking the weather."
+  val exceptionHappenedText = "Sorry, I encountered an error whilst checking the weather."
+  val unknownHappenedText = "Bugger, I had an error whilst checking the weather."
 
   def getWeatherForecast:String = {
     try {
@@ -90,9 +97,9 @@ class WeatherPlugin extends SarahPlugin {
         val high = (xml \\ "channel" \\ "item" \ "forecast")(i) \ "@high"
         val text = (xml \\ "channel" \\ "item" \ "forecast")(i) \ "@text"
         if (i == 0) {
-          sb.append(format("Here's the forecast. For %s, a low of %s, a high of %s, and %s skies. ", days(day.toString.trim), low, high, text ))
+          sb.append(format("Here's the forecast.\nFor %s, a low of %s, a high of %s, and %s skies. ", days(day.toString.trim), low, high, text ))
         } else {
-          sb.append(format("For %s, a low of %s, a high of %s, and %s skies. ", days(day.toString.trim), low, high, text ))
+          sb.append(format("\nFor %s, a low of %s, a high of %s, and %s skies.\n", days(day.toString.trim), low, high, text ))
         }
       }
       return sb.toString
